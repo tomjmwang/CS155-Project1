@@ -1,0 +1,74 @@
+
+
+<html>
+	<head>
+    <meta charset="utf-8">
+
+    <title>CS247G Project 1</title>
+    <!-- Bootstrap Core CSS -->
+    <link rel="stylesheet" href="src/css/bootstrap.min.css" integrity="" crossorigin="anonymous" />
+
+    <!-- jQuery -->
+    <script
+        src="src/js/jquery-2.2.4.min.js"
+        integrity=""
+        crossorigin="anonymous"></script>
+    <script
+      src="src/js/jquery-ui.min.js"
+      integrity=""
+      crossorigin="anonymous"></script>
+    <!-- Bootstrap Core JavaScript -->
+    <script src="src/js/bootstrap.min.js" integrity=""
+        crossorigin="anonymous"></script>
+    <script src="src/js/underscore-umd-min.js" integrity=""
+        crossorigin="anonymous"></script>
+    <script src="src/js/main.js" integrity=""
+        crossorigin="anonymous"></script>
+
+  </head>
+
+  <body>
+    <div class="container">
+      <div id="game_setting">
+        <div class="form-group row">
+          <label for="player_num" class="col-2 col-form-label">Player Number</label>
+          <div class="col-10">
+            <input class="form-control" type="number" value="3" id="player_num"/>
+          </div>
+        </div>
+        <div class="form-group row">
+          <label for="type_1_num" class="col-2 col-form-label">Question Type One</label>
+          <div class="col-10">
+            <input class="form-control" type="number" value="1" id="type_1_num"/>
+          </div>
+        </div>
+        <div class="form-group row">
+          <label for="type_2_num" class="col-2 col-form-label">Question Type Two</label>
+          <div class="col-10">
+            <input class="form-control" type="number" value="1" id="type_2_num"/>
+          </div>
+        </div>
+        <div class="form-group row">
+          <label for="type_3_num" class="col-2 col-form-label">Question Type Three</label>
+          <div class="col-10">
+            <input class="form-control" type="number" value="1" id="type_3_num"/>
+          </div>
+        </div>
+        <button id="start_button" onclick="start_game()" class="btn btn-success">Start Game</button>
+      </div>
+
+      <div id="game" style="display:none">
+        <div id="current_cards"></div>
+        <h3 id="current_player"></h3>
+        <h4 id="question_text"></h4>
+        <button id="accept" onclick="accept()" class="btn btn-success">Accept</button>
+        <button id="reject" onclick="next_turn()" class="btn btn-warning">Reject</button>
+        <br/>
+        <h3 id="message"></h3>
+        <button id="reset" onclick="reset_game()" class="btn btn-danger">Reset Game</button>
+
+      </div>
+    </div>
+  </body>
+
+</html>

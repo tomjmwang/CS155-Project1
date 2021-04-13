@@ -1,6 +1,6 @@
-let question_set_1 = ["a", "b", "c"];
-let question_set_2 = ["d", "e", "f"];
-let question_set_3 = ["g", "h", "i"];
+let question_set_1 = ["When have you felt most powerful?", "What brings out the best in you?", "If there was one more hour in the day, what would you spend it on?"];
+let question_set_2 = ["What is one thing about yourself that you wish you could change?", "What makes you the happiest? Why?", "What is one thing in your life you wish you could change?"];
+let question_set_3 = ["Who do you most envy and why?", "What makes you sad and why?", "What do you most regret?"];
 
 //all the questions for each round
 let total_questions = [];
@@ -34,7 +34,7 @@ function reset_game(){
 function accept(){
     final_deck.push($("#question_text").html());
     reload_current_cards();
-    next_turn()
+    next_turn();
 }
 
 function next_turn(){
@@ -48,10 +48,11 @@ function next_turn(){
 }
 
 function reload_current_cards(){
-    htmlstr = "";
+    htmlstr = "<ul>";
     for(let i = 0; i < final_deck.length; i++){
-        htmlstr += "<p>" + final_deck[i] + "</p>";
+        htmlstr += "<li>" + final_deck[i] + "</li>";
     }
+    htmlstr += "</ul>";
     $("#current_cards").html(htmlstr);
 }
 

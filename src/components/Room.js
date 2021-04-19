@@ -2,8 +2,28 @@ import React from 'react'
 import firebase from '../firebase.js'
 
 // Create wordsets
-let all_questions = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n"]
-
+let all_questions = [
+"What is one of your favorite life hacks?",
+"What television show or movie makes you laugh the hardest and why?",
+"Are you a cat person or dog person?",
+"Who do you most admire and why?",
+"Do you think you're courageous or timid? Why?",
+"Which is harder for you to give: time or money? Why?",
+"How old where you when you had your first kiss?",
+"What is the silliest thing you have done in front of an unfamiliar crowd?",
+"What is the class you got the worst grade in?",
+"Have you ever cheated on an exam or quiz? If so, what is the exam on?",
+"What is a secret you kept from your parents?",
+"Are you a morning person or a night person?",
+"How many selfies do you take a day?",
+"are you a coffee person or a tea person?",
+"describe your favorite childhood show",
+"What's the longest time you've ever gone without showering?",
+"type 'what is' in your google search bar. What is the most embarassing thing that pops up?",
+"what is an embarassing nickname that you once had?",
+"Who is your celebrity crush? why?",
+"How much toilet paper do you use for one wipe? (can be in number of perforated 'squares')"
+]
 function shuffle(array){
 
     var currentIndex = array.length
@@ -36,11 +56,11 @@ class Room extends React.Component {
             liar: "",
             current_player: 0,
             name: window.location.pathname.substring(19),
-            vote_result: true,
+            vote_result: "",
             voted: false,
             true_deck: [],
             lie_deck: [],
-            votes: {true_count: 0, lie_count:0}
+            votes: {true_count: 0, lie_count:0},
         }
         this.startGame = this.startGame.bind(this)
         this.updateVoteTruth = this.updateVoteTruth.bind(this)
@@ -167,6 +187,11 @@ class Room extends React.Component {
                 current_card: card.val()
             })
         })
+        game.child('vote_result').on('value', vr=>{
+            this.setState({
+                vote_result: vr.val()
+            })
+        })
         const votes = game.child('votes')
         votes.on('value', votes => {
             
@@ -184,6 +209,7 @@ class Room extends React.Component {
                 game.child('cards').get().then((cards)=>{
                     let new_true_deck = cards.val().true_deck
                     let new_lie_deck = cards.val().lie_deck
+                    let result = "";
                     if(votes.val().lie_count > votes.val().true_count){
                         if(new_lie_deck == null){
                             new_lie_deck = [[this.state.current_card.name, this.state.current_card.val]]
@@ -191,9 +217,11 @@ class Room extends React.Component {
                         else{
                             new_lie_deck.push([this.state.current_card.name, this.state.current_card.val])
                         }
+                        result = "lie deck"
                     }
                     else{
                         new_true_deck.push([this.state.current_card.name, this.state.current_card.val])
+                        result = "truth deck"
                     }
                     //check for game ending condition...
                     if(new_lie_deck.length === 4){
@@ -202,7 +230,8 @@ class Room extends React.Component {
                             'cards': {
                                 true_deck: new_true_deck,
                                 lie_deck: new_lie_deck
-                            }
+                            },
+                            'vote_result': result
                         })
                     }
                     else{
@@ -218,7 +247,8 @@ class Room extends React.Component {
                             'cards': {
                                 true_deck: new_true_deck,
                                 lie_deck: new_lie_deck
-                            }
+                            },
+                            'vote_result': result
                         })
                         this.setState({
                             voted: false
@@ -251,8 +281,8 @@ class Room extends React.Component {
                 <div className='gameScreenRight'>
                     {this.state.stage === 0 && // Waiting room
                         <div>
-                            <p className='linkLabel'>send your friends this link:</p>
-                            <p className='link'>{'https://cs247g-9d957.web.app' + window.location.pathname.replace('room', 'enter').substring(0, 14)}</p>
+                            <p className='linkLabel'>send your friends this code:</p>
+                            <p className='link'>{window.location.pathname.substring(6, 13)}</p>
                             <button className='block' onClick={this.startGame} style={{ marginTop: '20px', marginLeft: 'auto', marginRight: 'auto' }}>start</button>
                         </div>
                     }
@@ -267,7 +297,8 @@ class Room extends React.Component {
                                 }
                             </div>
                             <div>
-                                {this.state.current_card.name}
+                                <p className='promptLabel'>Current Player: {this.state.players[this.state.current_player]}</p>
+                                <p className='promptLabel'>Current Question: {this.state.current_card.name}</p>
                             </div>
                             {this.state.name !== this.state.players[this.state.current_player]  && 
                                 <div>
@@ -278,12 +309,15 @@ class Room extends React.Component {
                                     </div>
                                 }
                                 {this.state.voted === true &&
-                                    <div>
+                                    <div className='promptLabel'>
                                         You have voted!
                                     </div>
                                 }
                                 </div>
                             }
+                            <div className='linkLabel'>
+                                Last question got put in {this.state.vote_result}.
+                            </div>
                         </div>
                     }
                     {this.state.stage === 2 && // Game ended

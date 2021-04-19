@@ -2,7 +2,7 @@ import React from 'react'
 import firebase from '../firebase.js'
 
 // Create wordsets
-let all_questions = ["a", "b", "c", "d", "e", "f"]
+let all_questions = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n"]
 
 function shuffle(array){
 
@@ -31,7 +31,7 @@ class Room extends React.Component {
         super(props)
         this.state = {
             players: [],
-            current_card: [],
+            current_card: {},
             stage: 0,
             liar: "",
             current_player: 0,
@@ -39,7 +39,8 @@ class Room extends React.Component {
             vote_result: true,
             voted: false,
             true_deck: [],
-            lie_deck: []
+            lie_deck: [],
+            votes: {true_count: 0, lie_count:0}
         }
         this.startGame = this.startGame.bind(this)
         this.updateVoteTruth = this.updateVoteTruth.bind(this)
@@ -51,37 +52,48 @@ class Room extends React.Component {
         const id = window.location.pathname.substring(6, 13)
         let game = firebase.database().ref('games').child(id)
         let cards = game.child('cards')
-        let new_true_deck = cards.child('true_deck').val()
-        let new_card = new_true_deck.shift()
-        game.update({
-            'votes': [], 
-            'current_card': new_card,
-            'cards': {
-                true_deck: new_true_deck,
-                lie_deck: []
-            }
+        cards.child('true_deck').get().then((data)=>{
+            let new_card_deck = data.val()
+            let new_card = new_card_deck.shift()
+            game.update({
+                'votes': {true_count: 0, lie_count:0}, 
+                'current_card': {name: new_card[0], val: new_card[1]},
+                'stage': 1,
+                'cards': {
+                    true_deck: new_card_deck,
+                    lie_deck: []
+                }
+            })
         })
+        
+        
     }
 
     updateVoteTruth(){
         const id = window.location.pathname.substring(6, 13)
         let game = firebase.database().ref('games').child(id)
-        let votes = game.child('votes').val()
-        votes.push(true)
-        game.update({'votes': votes})
-        this.setState({
-            voted: true
+
+        game.child('votes').get().then((data)=>{
+            let votes = data.val()
+            votes.true_count = votes.true_count + 1
+            game.update({'votes': votes})
+            this.setState({
+                voted: true
+            })
         })
+        
     }
 
     updateVoteLie(){
         const id = window.location.pathname.substring(6, 13)
         let game = firebase.database().ref('games').child(id)
-        let votes = game.child('votes').val()
-        votes.push(false)
-        game.update({'votes': votes})
-        this.setState({
-            voted: true
+        game.child('votes').get().then((data)=>{
+            let votes = data.val()
+            votes.lie_count = votes.lie_count + 1
+            game.update({'votes': votes})
+            this.setState({
+                voted: true
+            })
         })
     }
 
@@ -101,6 +113,7 @@ class Room extends React.Component {
         players.on('child_added', player => {
             let updatedPlayers = this.state.players
             updatedPlayers.push(player.val())
+            updatedPlayers.sort()
             this.setState({
                 players: updatedPlayers
             })
@@ -123,8 +136,7 @@ class Room extends React.Component {
                     }
                 }
                 let selected_questions = {
-                    true_deck: true_deck,
-                    lie_deck: []
+                    true_deck: true_deck
                 }
                 game.update({ 'cards': selected_questions })
                 // Determine liar for current round
@@ -158,55 +170,62 @@ class Room extends React.Component {
         const votes = game.child('votes')
         votes.on('value', votes => {
             
-            if(votes.val().length === this.state.players.length-1){
-                let true_count = 0
-                let lie_count = 0
-                for(let j = 0; j < votes.val().length; j++){
-                    if (votes.val()[j] === true){
-                        true_count += 1
+            if(votes.val().lie_count + votes.val().true_count === this.state.players.length-1 && this.state.players.length !== 1){
+                // let true_count = 0
+                // let lie_count = 0
+                // for(let j = 0; j < votes.val().length; j++){
+                //     if (votes.val()[j] === true){
+                //         true_count += 1
+                //     }
+                //     else{
+                //         lie_count += 1
+                //     }
+                // }
+                game.child('cards').get().then((cards)=>{
+                    let new_true_deck = cards.val().true_deck
+                    let new_lie_deck = cards.val().lie_deck
+                    if(votes.val().lie_count > votes.val().true_count){
+                        if(new_lie_deck == null){
+                            new_lie_deck = [[this.state.current_card.name, this.state.current_card.val]]
+                        }
+                        else{
+                            new_lie_deck.push([this.state.current_card.name, this.state.current_card.val])
+                        }
                     }
                     else{
-                        lie_count += 1
+                        new_true_deck.push([this.state.current_card.name, this.state.current_card.val])
                     }
-                }
-                let cards = game.child('cards')
-                let new_true_deck = cards.child('true_deck').val()
-                let new_lie_deck = cards.child('lie_deck').val()
-                if(lie_count > true_count){
-                    new_lie_deck.push(this.state.current_question)
-                }
-                else{
-                    new_true_deck.push(this.state.current_question)
-                }
-                //check for game ending condition...
-                if(new_lie_deck.length === 4){
-                    game.update({
-                        'stage': 2,
-                        'cards': {
-                            true_deck: new_true_deck,
-                            lie_deck: new_lie_deck
-                        }
-                    })
-                }
-                else{
-                    let current_player = this.state.current_player + 1
-                    if (current_player === this.state.players.length){
-                        current_player = 0
+                    //check for game ending condition...
+                    if(new_lie_deck.length === 4){
+                        game.update({
+                            'stage': 2,
+                            'cards': {
+                                true_deck: new_true_deck,
+                                lie_deck: new_lie_deck
+                            }
+                        })
                     }
-                    let new_card = new_true_deck.shift()
-                    game.update({
-                        'votes': [], 
-                        'current_player': current_player, 
-                        'current_card': new_card,
-                        'cards': {
-                            true_deck: new_true_deck,
-                            lie_deck: new_lie_deck
+                    else{
+                        let current_player = this.state.current_player + 1
+                        if (current_player === this.state.players.length){
+                            current_player = 0
                         }
-                    })
-                    this.setState({
-                        voted: false
-                    })
-                }
+                        let new_card = new_true_deck.shift()
+                        game.update({
+                            'votes': {true_count: 0, lie_count:0}, 
+                            'current_player': current_player, 
+                            'current_card': {name: new_card[0], val:new_card[1]},
+                            'cards': {
+                                true_deck: new_true_deck,
+                                lie_deck: new_lie_deck
+                            }
+                        })
+                        this.setState({
+                            voted: false
+                        })
+                    }
+                })
+                
             }
             else{
                 this.setState({
@@ -248,12 +267,21 @@ class Room extends React.Component {
                                 }
                             </div>
                             <div>
-                                {this.state.current_question[0]}
+                                {this.state.current_card.name}
                             </div>
                             {this.state.name !== this.state.players[this.state.current_player]  && 
                                 <div>
-                                    <button className='block' onClick={this.updateVoteTruth} style={{ marginTop: '20px', marginLeft: 'auto', marginRight: 'auto' }}>Truth</button>
-                                    <button className='block' onClick={this.updateVoteLie} style={{ marginTop: '20px', marginLeft: 'auto', marginRight: 'auto' }}>Lie</button>
+                                {this.state.voted === false &&
+                                    <div>
+                                        <button className='block' onClick={this.updateVoteTruth} style={{ marginTop: '20px', marginLeft: 'auto', marginRight: 'auto' }}>Truth</button>
+                                        <button className='block' onClick={this.updateVoteLie} style={{ marginTop: '20px', marginLeft: 'auto', marginRight: 'auto' }}>Lie</button>
+                                    </div>
+                                }
+                                {this.state.voted === true &&
+                                    <div>
+                                        You have voted!
+                                    </div>
+                                }
                                 </div>
                             }
                         </div>

@@ -21,8 +21,8 @@ function EnterUsername() {
             if (url.length === 6) {
                 const id = rand.generate(7)
                 const cards = {
-                    true_deck: [],
-                    lie_deck:[]
+                    true_deck: [""],
+                    lie_deck:[""]
                 }
                 const game = {
                     liar: "",
@@ -32,8 +32,8 @@ function EnterUsername() {
                     stage: 0,
                     cards: cards,
                     current_player: 0,
-                    current_card: [],
-                    votes: []
+                    current_card: {name: "", val: true},
+                    votes: {true_count: 0, lie_count:0}
                 }
                 games.child(id).set(game)
                 hist.replace('/room/' + id + '&name=' + name)

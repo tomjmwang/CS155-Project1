@@ -3,13 +3,13 @@ import random
 class ExplodingLiar:
 
     def __init__(self):
-        self.players = [0,1,2,3]
+        self.players = [0,1,2]
         self.liar = -1
         self.deck1 = []
         self.deck2 = []
-        self.truth = 40
-        self.lie = 20
-        self.end_game_threshold = 15
+        self.truth = 4
+        self.lie = 1
+        self.end_game_threshold = 2
         self.current_player = 0
 
     def resetGame(self):
@@ -36,6 +36,7 @@ class ExplodingLiar:
                     self.deck1.append(card)
                 else:
                     self.deck2.append(card)
+            random.shuffle(self.deck1)
             self.current_player += 1
             if self.current_player > 3:
                 self.current_player = 0

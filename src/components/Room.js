@@ -41,7 +41,6 @@ class Room extends React.Component {
             true_deck: [],
             lie_deck: []
         }
-        this.updateStage = this.updateStage.bind(this)
         this.startGame = this.startGame.bind(this)
         this.updateVoteTruth = this.updateVoteTruth.bind(this)
         this.updateVoteLie = this.updateVoteLie.bind(this)
@@ -115,7 +114,6 @@ class Room extends React.Component {
                 // Determine questions for current round
                 let new_questions = shuffle(all_questions)
                 let true_deck = []
-                let lie_deck = []
                 for(let i = 0; i < 10; i++){
                     if(i < 8){
                         true_deck.push([new_questions[i], true])

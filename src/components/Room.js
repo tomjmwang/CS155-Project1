@@ -62,6 +62,10 @@ class Room extends React.Component {
             true_deck: [],
             lie_deck: [],
             votes: {true_count: 0, lie_count:0},
+            turn_count: 0,
+            end_condition_count: 0,
+            round_count: 1,
+            info: {true_count: 0, lie_count:0}
         }
         this.startGame = this.startGame.bind(this)
         this.updateVoteTruth = this.updateVoteTruth.bind(this)
@@ -83,7 +87,11 @@ class Room extends React.Component {
                 'cards': {
                     true_deck: new_card_deck,
                     lie_deck: []
-                }
+                },
+                'turn_count': 0,
+                'end_condition_count': 0,
+                'round_count': 1,
+                'info': {true_count: 8, lie_count:2}
             })
         })
 
@@ -193,6 +201,26 @@ class Room extends React.Component {
                 vote_result: vr.val()
             })
         })
+        game.child('turn_count').on('value', tc=>{
+            this.setState({
+                turn_count: tc.val()
+            })
+        })
+        game.child('end_condition_count').on('value', ecc=>{
+            this.setState({
+                end_condition_count: ecc.val()
+            })
+        })
+        game.child('round_count').on('value', rc=>{
+            this.setState({
+                round_count: rc.val()
+            })
+        })
+        game.child('info').on('value', info=>{
+            this.setState({
+                info: info.val()
+            })
+        })
         const votes = game.child('votes')
         votes.on('value', votes => {
 
@@ -210,22 +238,26 @@ class Room extends React.Component {
                 game.child('cards').get().then((cards)=>{
                     let new_true_deck = cards.val().true_deck
                     let new_lie_deck = cards.val().lie_deck
-                    let result = "";
+                    if(new_lie_deck === null){
+                        new_lie_deck = []
+                    }
+                    let result = ""
+                    let new_end_condition_count = this.state.end_condition_count
+                    let new_round_count = this.state.round_count
+                    let new_turn_count = this.state.turn_count + 1
+                    let new_info = this.state.info
                     if(votes.val().lie_count > votes.val().true_count){
-                        if(new_lie_deck == null){
-                            new_lie_deck = [[this.state.current_card.name, this.state.current_card.val]]
-                        }
-                        else{
-                            new_lie_deck.push([this.state.current_card.name, this.state.current_card.val])
-                        }
+                        new_lie_deck.push([this.state.current_card.name, this.state.current_card.val])
                         result = "lie deck"
+                        new_end_condition_count = 0
                     }
                     else{
                         new_true_deck.push([this.state.current_card.name, this.state.current_card.val])
                         result = "truth deck"
+                        new_end_condition_count += 1
                     }
                     //check for game ending condition...
-                    if(new_lie_deck.length === 4){
+                    if(new_lie_deck.length === 4 || new_end_condition_count === 6){
                         game.update({
                             'stage': 2,
                             'cards': {
@@ -240,6 +272,20 @@ class Room extends React.Component {
                         if (current_player === this.state.players.length){
                             current_player = 0
                         }
+                        if(new_turn_count % this.state.players.length === 0){
+                            let t = 0
+                            let l = 0
+                            for(let k = 0; k < new_true_deck.length; k++){
+                                if(new_true_deck[k][1] === true){
+                                    t += 1
+                                }
+                                else{
+                                    l += 1
+                                }
+                            }
+                            new_info = {true_count: t, lie_count: l}
+                            new_round_count += 1
+                        }
                         let new_card = new_true_deck.shift()
                         game.update({
                             'votes': {true_count: 0, lie_count:0},
@@ -249,7 +295,11 @@ class Room extends React.Component {
                                 true_deck: new_true_deck,
                                 lie_deck: new_lie_deck
                             },
-                            'vote_result': result
+                            'vote_result': result,
+                            'end_condition_count': new_end_condition_count,
+                            'round_count': new_round_count,
+                            'turn_count': new_turn_count,
+                            'info': new_info
                         })
                         this.setState({
                             voted: false
@@ -318,6 +368,8 @@ class Room extends React.Component {
         const answerIntegrityCard = this.state.current_card.val
         const currentPlayer = this.state.name
         const currentPlayerIsLiar = this.state.name === this.state.liar
+        const cardInfo = this.state.info
+        const roundCount = this.state.round_count
 
         return (
             <div>
@@ -375,6 +427,11 @@ class Room extends React.Component {
                         Other players are currently voting on your ~ honesty ~ 😌😌😌
                     </div>
                 }
+
+                <div className='promptLabel'>
+                    As of start of round {roundCount}, there were {cardInfo.true_count} truth cards and {cardInfo.lie_count} lie cards 
+                    in the main deck.
+                </div>
                 {this.state.vote_result && <div className='linkLabel'>
                     Last question got put in {this.state.vote_result}.
                 </div>}

@@ -34,7 +34,11 @@ function EnterUsername() {
                     current_player: 0,
                     current_card: {name: "", val: true},
                     votes: {true_count: 0, lie_count:0},
-                    vote_result: ""
+                    vote_result: "",
+                    turn_count: 0,
+                    end_condition_count: 0,
+                    round_count: 1,
+                    info: {true_count: 0, lie_count:0}
                 }
                 games.child(id).set(game)
                 hist.replace('/room/' + id + '&name=' + name)

@@ -196,7 +196,7 @@ class Room extends React.Component {
         const votes = game.child('votes')
         votes.on('value', votes => {
 
-            if(votes.val().lie_count + votes.val().true_count === this.state.players.length-1 && this.state.players.length !== 1){
+            if(votes.val().lie_count + votes.val().true_count === this.state.players.length-1){
                 // let true_count = 0
                 // let lie_count = 0
                 // for(let j = 0; j < votes.val().length; j++){

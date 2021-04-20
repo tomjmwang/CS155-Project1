@@ -50,11 +50,13 @@ function EnterUsername() {
     }
 
     return (
-        <div className='container'>
-            <label className='usernameLabel' htmlFor='username'>username:</label> {/*check for uniqueness, or just add a number to the end if not unique*/}
-            <input className='usernameInput' type='text' id='username' />
-            <button className='block' onClick={Submit} style={{ marginLeft: 'auto', marginRight: 'auto' }}>enter</button>
-            <p className='usernameValidationLabel' id='usernameValidationLabel'>(alphanumeric only)</p>
+        <div className='root'>
+            <div className='container'>
+                <label className='usernameLabel' htmlFor='username'>username:</label> {/*check for uniqueness, or just add a number to the end if not unique*/}
+                <input className='usernameInput' type='text' id='username' />
+                <button className='block' onClick={Submit} style={{ marginLeft: 'auto', marginRight: 'auto' }}>enter</button>
+                <p className='usernameValidationLabel' id='usernameValidationLabel'>(alphanumeric only)</p>
+            </div>
         </div>
     );
 }

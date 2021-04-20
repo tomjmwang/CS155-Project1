@@ -24,6 +24,7 @@ let all_questions = [
 "Who is your celebrity crush? why?",
 "How much toilet paper do you use for one wipe? (can be in number of perforated 'squares')"
 ]
+
 function shuffle(array){
 
     var currentIndex = array.length
@@ -76,7 +77,7 @@ class Room extends React.Component {
             let new_card_deck = data.val()
             let new_card = new_card_deck.shift()
             game.update({
-                'votes': {true_count: 0, lie_count:0}, 
+                'votes': {true_count: 0, lie_count:0},
                 'current_card': {name: new_card[0], val: new_card[1]},
                 'stage': 1,
                 'cards': {
@@ -85,8 +86,8 @@ class Room extends React.Component {
                 }
             })
         })
-        
-        
+
+
     }
 
     updateVoteTruth(){
@@ -101,7 +102,7 @@ class Room extends React.Component {
                 voted: true
             })
         })
-        
+
     }
 
     updateVoteLie(){
@@ -194,7 +195,7 @@ class Room extends React.Component {
         })
         const votes = game.child('votes')
         votes.on('value', votes => {
-            
+
             if(votes.val().lie_count + votes.val().true_count === this.state.players.length-1 && this.state.players.length !== 1){
                 // let true_count = 0
                 // let lie_count = 0
@@ -241,8 +242,8 @@ class Room extends React.Component {
                         }
                         let new_card = new_true_deck.shift()
                         game.update({
-                            'votes': {true_count: 0, lie_count:0}, 
-                            'current_player': current_player, 
+                            'votes': {true_count: 0, lie_count:0},
+                            'current_player': current_player,
                             'current_card': {name: new_card[0], val:new_card[1]},
                             'cards': {
                                 true_deck: new_true_deck,
@@ -255,7 +256,7 @@ class Room extends React.Component {
                         })
                     }
                 })
-                
+
             }
             else{
                 this.setState({
@@ -265,69 +266,130 @@ class Room extends React.Component {
         })
     }
 
-    render() {
+    renderPlayerList() {
+        const answeringPlayer = this.state.players[this.state.current_player]
+
         return (
-            <div className='gameScreen'>
-                <div className='gameScreenLeft'>
+            <div className='gameScreenLeft'>
                     <p className='playersLabel'>
                         players:
                     </p>
                     <div className='playersList'>
-                        {this.state.players.map((player) =>
-                            <li key={player}>{player}</li>
+                        {this.state.players.map((player) => {
+                            return (
+                                <li key={player}>
+                                    <div className={player === answeringPlayer ? 'currentPlayer' : undefined} >
+                                        {player}
+                                    </div>
+                                </li>
+                            )
+                        }
                         )}
                     </div>
                 </div>
+        )
+    }
+
+    renderWaitingRoom() {
+
+        return (
+            <div className='waiting'>
+                <p className='linkLabel'>send your friends this code:</p>
+                <p className='link'>{window.location.pathname.substring(6, 13)}</p>
+                <button className='block' onClick={this.startGame} style={{ marginTop: '20px', marginLeft: 'auto', marginRight: 'auto' }}>start</button>
+            </div>
+        )
+    }
+
+    renderEndPage() {
+        return (
+            <div>
+                <div className='liarLabel'>
+                    {this.state.liar} was the liar!
+                </div>
+                <button className='block' onClick={this.restartGame} style={{ marginTop: '20px', marginLeft: 'auto', marginRight: 'auto' }}>play again</button>
+            </div>
+        )
+    }
+
+    renderMainGamePage() {
+        const answeringPlayer = this.state.players[this.state.current_player]
+        const currentQuestion = this.state.current_card.name
+        const answerIntegrityCard = this.state.current_card.val
+        const currentPlayer = this.state.name
+        const currentPlayerIsLiar = this.state.name === this.state.liar
+
+        return (
+            <div>
+                {!currentPlayerIsLiar &&
+                    <div>
+                        <u>You are a truth-teller.</u><br/>
+                        You are trying to detect when other people are lying,
+                        and figure out who is the liar.
+                    </div>
+                }
+                {currentPlayerIsLiar &&
+                    <div>
+                        <u>You are the liar.</u><br/>
+                        You must always lie when it is your turn to answer questions.
+                        Try to get dishonest answer integrity cards into the final
+                        lie deck without being detected.
+                    </div>
+                }
+                <div>
+                    {currentPlayer !== answeringPlayer ? (
+                        <p className='promptLabel'>{answeringPlayer} is answering the question '{currentQuestion}'</p>
+                        ) : (
+                        <>
+                            <p className='promptLabel'>It's your turn to answer this question: <br/> {currentQuestion}</p>
+                            <p className='promptLabel'>
+                                You have drawn {this.state.current_card.val ? 'an honest' : 'a dishonest'} answer-integrity card.
+                                As a {currentPlayerIsLiar ? 'Liar' : 'Truth-teller'},
+                                you must {currentPlayerIsLiar ? 'lie' : this.state.current_card.val ? 'tell the truth' : 'lie'}.
+                            </p>
+
+                        </>
+                        )
+                    }
+                </div>
+                {currentPlayer !== answeringPlayer  &&
+                    <div>
+                    {this.state.voted === false &&
+                        <div className='votingSection'>
+                            Do you think {answeringPlayer} has an honest or dishonest integrity card?
+                            <div className='votingOptions'>
+                                <button className='block' onClick={this.updateVoteTruth}>Honest</button>
+                                <button className='block' onClick={this.updateVoteLie}>Dishonest</button>
+                            </div>
+                        </div>
+                    }
+                    {this.state.voted === true &&
+                        <div className='promptLabel'>
+                            You have voted!
+                        </div>
+                    }
+                    </div>
+                }
+                {
+                    currentPlayer === answeringPlayer && <div className='votingSection'>
+                        Other players are currently voting on your ~ honesty ~ 😌😌😌
+                    </div>
+                }
+                {this.state.vote_result && <div className='linkLabel'>
+                    Last question got put in {this.state.vote_result}.
+                </div>}
+            </div>
+        )
+    }
+
+    render() {
+        return (
+            <div className='gameScreen'>
+                {this.renderPlayerList()}
                 <div className='gameScreenRight'>
-                    {this.state.stage === 0 && // Waiting room
-                        <div>
-                            <p className='linkLabel'>send your friends this code:</p>
-                            <p className='link'>{window.location.pathname.substring(6, 13)}</p>
-                            <button className='block' onClick={this.startGame} style={{ marginTop: '20px', marginLeft: 'auto', marginRight: 'auto' }}>start</button>
-                        </div>
-                    }
-                    {this.state.stage === 1 && // Game started
-                        <div>
-                            <div className='promptLabel'>
-                                {window.location.pathname.substring(19) !== this.state.liar &&
-                                    <div>You are a truth-teller.</div>
-                                }
-                                {window.location.pathname.substring(19) === this.state.liar &&
-                                    <div>You are the liar</div>
-                                }
-                            </div>
-                            <div>
-                                <p className='promptLabel'>Current Player: {this.state.players[this.state.current_player]}</p>
-                                <p className='promptLabel'>Current Question: {this.state.current_card.name}</p>
-                            </div>
-                            {this.state.name !== this.state.players[this.state.current_player]  && 
-                                <div>
-                                {this.state.voted === false &&
-                                    <div>
-                                        <button className='block' onClick={this.updateVoteTruth} style={{ marginTop: '20px', marginLeft: 'auto', marginRight: 'auto' }}>Truth</button>
-                                        <button className='block' onClick={this.updateVoteLie} style={{ marginTop: '20px', marginLeft: 'auto', marginRight: 'auto' }}>Lie</button>
-                                    </div>
-                                }
-                                {this.state.voted === true &&
-                                    <div className='promptLabel'>
-                                        You have voted!
-                                    </div>
-                                }
-                                </div>
-                            }
-                            <div className='linkLabel'>
-                                Last question got put in {this.state.vote_result}.
-                            </div>
-                        </div>
-                    }
-                    {this.state.stage === 2 && // Game ended
-                        <div>
-                            <div className='liarLabel'>
-                                {this.state.liar} was the liar!
-                            </div>
-                            <button className='block' onClick={this.restartGame} style={{ marginTop: '20px', marginLeft: 'auto', marginRight: 'auto' }}>play again</button>
-                        </div>
-                    }
+                    {this.state.stage === 0 && this.renderWaitingRoom()}
+                    {this.state.stage === 1 && this.renderMainGamePage()}
+                    {this.state.stage === 2 && this.renderEndPage()}
                 </div>
             </div>
         );

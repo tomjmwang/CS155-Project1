@@ -238,7 +238,7 @@ class Room extends React.Component {
                 game.child('cards').get().then((cards)=>{
                     let new_true_deck = cards.val().true_deck
                     let new_lie_deck = cards.val().lie_deck
-                    if(new_lie_deck === null){
+                    if(new_lie_deck == null){
                         new_lie_deck = []
                     }
                     let result = ""
@@ -258,13 +258,29 @@ class Room extends React.Component {
                     }
                     //check for game ending condition...
                     if(new_lie_deck.length === 4 || new_end_condition_count === 6){
+                        let end_info = {true_count:0, lie_count:0}
+                        let end_true_count = 0
+                        let end_lie_count = 0
+                        for(let u = 0; u < this.state.true_deck.length; u++){
+                            if(new_true_deck[u][1] === true){
+                                    end_true_count += 1
+                                }
+                                else{
+                                    end_lie_count += 1
+                                }
+                        }
+                        end_info = {true_count: end_true_count, lie_count: end_lie_count}
                         game.update({
                             'stage': 2,
                             'cards': {
                                 true_deck: new_true_deck,
                                 lie_deck: new_lie_deck
                             },
-                            'vote_result': result
+                            'vote_result': result,
+                            'info': end_info
+                        })
+                        this.setState({
+                            voted: false
                         })
                     }
                     else{
@@ -352,10 +368,12 @@ class Room extends React.Component {
     }
 
     renderEndPage() {
+        const end_info = this.state.info
         return (
             <div>
                 <div className='liarLabel'>
-                    {this.state.liar} was the liar!
+                    Game ends! {end_info.true_count} truth cards, {end_info.lie_count} lie cards in main deck.
+                    {this.state.liar} is the liar!
                 </div>
                 <button className='block' onClick={this.restartGame} style={{ marginTop: '20px', marginLeft: 'auto', marginRight: 'auto' }}>play again</button>
             </div>

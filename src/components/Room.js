@@ -25,7 +25,11 @@ const all_questions = [
 "How much toilet paper do you use for one wipe? (can be in number of perforated 'squares')"
 ]
 
-const MIN_NUMBER_PLAYERS = 4
+const MIN_NUMBER_PLAYERS = 2
+const LIE_DECK_END_COUNT = 2
+
+const TRUTH_CARD_TOTAL_COUNT = 4
+const LIE_CARD_TOTAL_COUNT = 1
 
 function shuffle(array){
 
@@ -97,7 +101,7 @@ class Room extends React.Component {
                 'turn_count': 0,
                 'end_condition_count': 0,
                 'round_count': 1,
-                'info': {true_count: 8, lie_count:2}
+                'info': {true_count: TRUTH_CARD_TOTAL_COUNT, lie_count: LIE_CARD_TOTAL_COUNT}
             })
         })
 
@@ -162,8 +166,8 @@ class Room extends React.Component {
                 // Determine questions for current round
                 let new_questions = shuffle(all_questions)
                 let true_deck = []
-                for(let i = 0; i < 10; i++){
-                    if(i < 8){
+                for (let i = 0; i < TRUTH_CARD_TOTAL_COUNT + LIE_CARD_TOTAL_COUNT; i++){
+                    if(i < TRUTH_CARD_TOTAL_COUNT){
                         true_deck.push([new_questions[i], true])
                     }
                     else{
@@ -229,8 +233,7 @@ class Room extends React.Component {
         })
         const votes = game.child('votes')
         votes.on('value', votes => {
-
-            if(votes.val().lie_count + votes.val().true_count === this.state.players.length-1){
+            if(votes.val().lie_count + votes.val().true_count === this.state.players.length - 1){
                 // let true_count = 0
                 // let lie_count = 0
                 // for(let j = 0; j < votes.val().length; j++){
@@ -262,8 +265,9 @@ class Room extends React.Component {
                         result = "truth deck"
                         new_end_condition_count += 1
                     }
+
                     //check for game ending condition...
-                    if(new_lie_deck.length === 4 || new_end_condition_count === 6){
+                    if(new_lie_deck.length === LIE_DECK_END_COUNT || new_end_condition_count === this.state.players.length * 2){
                         let end_info = {true_count:0, lie_count:0}
                         let end_true_count = 0
                         let end_lie_count = 0
@@ -376,11 +380,26 @@ class Room extends React.Component {
 
     renderEndPage() {
         const end_info = this.state.info
+        const truthTellersAutoWin = end_info.lie_count === 0
         return (
             <div>
                 <div className='liarLabel'>
-                    Game ends! {end_info.true_count} truth cards, {end_info.lie_count} lie cards in main deck.
-                    {this.state.liar} is the liar!
+                    There are {end_info.true_count} truth cards, {end_info.lie_count} lie cards in main deck.
+                    {truthTellersAutoWin && <>Truth-tellers win, and {this.state.liar} is the liar / loser!</>}
+                    {!truthTellersAutoWin && <div>
+                        <br/>
+                        Since there are lie cards in the main deck, vote (over zoom) who you think the liar is.
+                        <br/>
+                        <br/>
+                        <details>
+                            <summary>Toggle to show the liar (don't click until everyone has voted!)</summary>
+                            <br/><br/>
+                            {this.state.liar} is the liar!
+                            <br/><br/>
+                            If the majority voted correctly, the truth-tellers win!
+                            Otherwise, the {this.state.liar} wins!
+                        </details>
+                    </div>}
                 </div>
                 <button className='block' onClick={this.restartGame} style={{ marginTop: '20px', marginLeft: 'auto', marginRight: 'auto' }}>play again</button>
             </div>
@@ -419,9 +438,9 @@ class Room extends React.Component {
                         <>
                             <p className='promptLabel'>It's your turn to answer this question: <br/> {currentQuestion}</p>
                             <p className='promptLabel'>
-                                You have drawn {this.state.current_card.val ? 'an honest' : 'a dishonest'} answer-integrity card.
-                                As a {currentPlayerIsLiar ? 'Liar' : 'Truth-teller'},
-                                you must {currentPlayerIsLiar ? 'lie' : this.state.current_card.val ? 'tell the truth' : 'lie'}.
+                                You have drawn <span className='hl'>{this.state.current_card.val ? 'an honest' : 'a dishonest'}</span> answer-integrity card.
+                                As a <span className='hl'>{currentPlayerIsLiar ? 'liar' : 'truth-teller'}</span>,
+                                you must <span className='hl'>{currentPlayerIsLiar ? 'lie' : this.state.current_card.val ? 'tell the truth' : 'lie'}</span>.
                             </p>
 
                         </>
@@ -459,7 +478,7 @@ class Room extends React.Component {
                 </div>
                 {this.state.vote_result && <div className='linkLabel'>
                     <br/>
-                    The last question got put in {this.state.vote_result}.
+                    The last question got put in {this.state.vote_result}. There are {this.state.lie_deck?.length || 0} cards in the lie deck.
                 </div>}
             </div>
         )

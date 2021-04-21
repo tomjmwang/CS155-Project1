@@ -2,7 +2,7 @@ import React from 'react'
 import firebase from '../firebase.js'
 
 // Create wordsets
-let all_questions = [
+const all_questions = [
 "What is one of your favorite life hacks?",
 "What television show or movie makes you laugh the hardest and why?",
 "Are you a cat person or dog person?",
@@ -24,6 +24,8 @@ let all_questions = [
 "Who is your celebrity crush? why?",
 "How much toilet paper do you use for one wipe? (can be in number of perforated 'squares')"
 ]
+
+const MIN_NUMBER_PLAYERS = 4
 
 function shuffle(array){
 
@@ -65,7 +67,7 @@ class Room extends React.Component {
             turn_count: 0,
             end_condition_count: 0,
             round_count: 1,
-            info: {true_count: 0, lie_count:0}
+            info: {true_count: 0, lie_count:0},
         }
         this.startGame = this.startGame.bind(this)
         this.updateVoteTruth = this.updateVoteTruth.bind(this)
@@ -108,7 +110,7 @@ class Room extends React.Component {
 
         game.child('votes').get().then((data)=>{
             let votes = data.val()
-            votes.true_count = votes.true_count + 1
+            votes.true_count += 1
             game.update({'votes': votes})
             this.setState({
                 voted: true
@@ -122,7 +124,7 @@ class Room extends React.Component {
         let game = firebase.database().ref('games').child(id)
         game.child('votes').get().then((data)=>{
             let votes = data.val()
-            votes.lie_count = votes.lie_count + 1
+            votes.lie_count += 1
             game.update({'votes': votes})
             this.setState({
                 voted: true
@@ -361,12 +363,13 @@ class Room extends React.Component {
     }
 
     renderWaitingRoom() {
-
+        const hasEnoughPlayers = this.state.players.length >= MIN_NUMBER_PLAYERS
         return (
             <div className='waiting'>
                 <p className='linkLabel'>send your friends this code:</p>
                 <p className='link'>{window.location.pathname.substring(6, 13)}</p>
-                <button className='block' onClick={this.startGame} style={{ marginTop: '20px', marginLeft: 'auto', marginRight: 'auto' }}>start</button>
+                {hasEnoughPlayers && <button className='block' onClick={this.startGame} style={{margin: 'auto'}}>start</button>}
+                {!hasEnoughPlayers && <p>{MIN_NUMBER_PLAYERS - this.state.players.length} more players needed to start!</p>}
             </div>
         )
     }
@@ -449,12 +452,14 @@ class Room extends React.Component {
                     </div>
                 }
 
-                <div className='promptLabel'>
+                <br/><br/>
+                <div className='linkLabel'>
                     As of start of round {roundCount}, there were {cardInfo.true_count} truth cards and {cardInfo.lie_count} lie cards
                     in the main deck.
                 </div>
                 {this.state.vote_result && <div className='linkLabel'>
-                    Last question got put in {this.state.vote_result}.
+                    <br/>
+                    The last question got put in {this.state.vote_result}.
                 </div>}
             </div>
         )

@@ -73,6 +73,10 @@ class Room extends React.Component {
         this.restartGame = this.restartGame.bind(this)
     }
 
+    isViewingMode() {
+        return this.state.name === '_'
+    }
+
     startGame(){
         const id = window.location.pathname.substring(6, 13)
         let game = firebase.database().ref('games').child(id)
@@ -383,7 +387,6 @@ class Room extends React.Component {
     renderMainGamePage() {
         const answeringPlayer = this.state.players[this.state.current_player]
         const currentQuestion = this.state.current_card.name
-        const answerIntegrityCard = this.state.current_card.val
         const currentPlayer = this.state.name
         const currentPlayerIsLiar = this.state.name === this.state.liar
         const cardInfo = this.state.info
@@ -391,7 +394,7 @@ class Room extends React.Component {
 
         return (
             <div>
-                {!currentPlayerIsLiar &&
+                {!this.isViewingMode() && !currentPlayerIsLiar &&
                     <div>
                         <u>You are a truth-teller.</u><br/>
                         You are trying to detect when other people are lying,
@@ -422,7 +425,7 @@ class Room extends React.Component {
                         )
                     }
                 </div>
-                {currentPlayer !== answeringPlayer  &&
+                {currentPlayer !== answeringPlayer && !this.isViewingMode() &&
                     <div>
                     {this.state.voted === false &&
                         <div className='votingSection'>
@@ -442,12 +445,12 @@ class Room extends React.Component {
                 }
                 {
                     currentPlayer === answeringPlayer && <div className='votingSection'>
-                        Other players are currently voting on your ~ honesty ~ 😌😌😌
+                        Other players are currently voting on {this.isViewingMode() ? answeringPlayer + "'s": 'your'} ~ honesty ~ 😌😌😌
                     </div>
                 }
 
                 <div className='promptLabel'>
-                    As of start of round {roundCount}, there were {cardInfo.true_count} truth cards and {cardInfo.lie_count} lie cards 
+                    As of start of round {roundCount}, there were {cardInfo.true_count} truth cards and {cardInfo.lie_count} lie cards
                     in the main deck.
                 </div>
                 {this.state.vote_result && <div className='linkLabel'>

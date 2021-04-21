@@ -1,10 +1,16 @@
 import React from 'react'
-import { Link, useHistory } from 'react-router-dom'
+import { useHistory } from 'react-router-dom'
 import firebase from '../firebase.js'
 var rand = require('randomstring')
 
 function EnterUsername() {
     const hist = useHistory()
+
+    function roomId() {
+        const url = window.location.pathname
+        return url.length > 6 ? url.substring(7, 14) : undefined
+    }
+
     function Submit() {
         const name = document.getElementById('username').value
         // If username is empty or more than 40 characters
@@ -15,10 +21,10 @@ function EnterUsername() {
         else if (/[^0-9A-Za-z]/.test(name)) {
             document.getElementById('usernameValidationLabel').innerHTML = 'please enter alphanumeric only'
         } else {
-            const url = window.location.pathname
+            const id = roomId()
             const games = firebase.database().ref('games')
             // If URL doesn't have id, create room
-            if (url.length === 6) {
+            if (!id) {
                 const id = rand.generate(7)
                 const cards = {
                     true_deck: [""],
@@ -45,12 +51,16 @@ function EnterUsername() {
             }
             // If URL has id, join existing room
             else {
-                const id = url.substring(7, 14)
                 const player = document.getElementById('username').value
                 games.child(id).child('players').push(player)
                 hist.replace('/room/' + id + '&name=' + name)
             }
         }
+    }
+
+    function enterViewMode() {
+        // This should not collide with any usernames, as it is not alphanumeric.
+        hist.replace(`/room/${roomId()}&name=_`)
     }
 
     return (
@@ -60,6 +70,11 @@ function EnterUsername() {
                 <input className='usernameInput' type='text' id='username' />
                 <button className='block' onClick={Submit} style={{ marginLeft: 'auto', marginRight: 'auto' }}>enter</button>
                 <p className='usernameValidationLabel' id='usernameValidationLabel'>(alphanumeric only)</p>
+
+                {roomId() && <div>
+                    <button className='block' onClick={enterViewMode} style={{ marginLeft: 'auto', marginRight: 'auto' }}>use screen share mode</button>
+                    <p className='usernameValidationLabel' id='usernameValidationLabel'>Good for screen sharing on zoom! No secrets leaked here ;)</p>
+                </div>}
             </div>
         </div>
     );

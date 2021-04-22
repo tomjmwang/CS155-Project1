@@ -25,11 +25,12 @@ const all_questions = [
 "How much toilet paper do you use for one wipe? (can be in number of perforated 'squares')"
 ]
 
-const MIN_NUMBER_PLAYERS = 2
-const LIE_DECK_END_COUNT = 2
+const MIN_NUMBER_PLAYERS = 4
+const GAME_END_TURN_COUNT = 8
+const LIE_DECK_END_COUNT = 4
 
-const TRUTH_CARD_TOTAL_COUNT = 4
-const LIE_CARD_TOTAL_COUNT = 1
+const TRUTH_CARD_TOTAL_COUNT = 6
+const LIE_CARD_TOTAL_COUNT = 2
 
 function shuffle(array){
 
@@ -72,6 +73,9 @@ class Room extends React.Component {
             end_condition_count: 0,
             round_count: 1,
             info: {true_count: 0, lie_count:0},
+            answers: [""],
+            current_votes: {"_": ""},
+            current_vote: ""
         }
         this.startGame = this.startGame.bind(this)
         this.updateVoteTruth = this.updateVoteTruth.bind(this)
@@ -101,7 +105,9 @@ class Room extends React.Component {
                 'turn_count': 0,
                 'end_condition_count': 0,
                 'round_count': 1,
-                'info': {true_count: TRUTH_CARD_TOTAL_COUNT, lie_count: LIE_CARD_TOTAL_COUNT}
+                'info': {true_count: TRUTH_CARD_TOTAL_COUNT, lie_count: LIE_CARD_TOTAL_COUNT},
+                'answers': [""],
+                current_votes: {"_": ""}
             })
         })
 
@@ -117,7 +123,8 @@ class Room extends React.Component {
             votes.true_count += 1
             game.update({'votes': votes})
             this.setState({
-                voted: true
+                voted: true,
+                current_vote: "honest"
             })
         })
 
@@ -131,7 +138,8 @@ class Room extends React.Component {
             votes.lie_count += 1
             game.update({'votes': votes})
             this.setState({
-                voted: true
+                voted: true,
+                current_vote: "dishonest"
             })
         })
     }
@@ -231,6 +239,16 @@ class Room extends React.Component {
                 info: info.val()
             })
         })
+        game.child('answers').on('value', an=>{
+            this.setState({
+                answers: an.val()
+            })
+        })
+        game.child('current_votes').on('value', cv=>{
+            this.setState({
+                current_votes: cv.val()
+            })
+        })
         const votes = game.child('votes')
         votes.on('value', votes => {
             if(votes.val().lie_count + votes.val().true_count === this.state.players.length - 1){
@@ -255,19 +273,22 @@ class Room extends React.Component {
                     let new_round_count = this.state.round_count
                     let new_turn_count = this.state.turn_count + 1
                     let new_info = this.state.info
+                    let new_answers = this.state.answers
                     if(votes.val().lie_count > votes.val().true_count){
                         new_lie_deck.push([this.state.current_card.name, this.state.current_card.val])
                         result = "lie deck"
                         new_end_condition_count = 0
+                        new_answers.push([this.state.players[this.state.current_player], this.state.current_card.name, "dishonest and put in lie deck."])
                     }
                     else{
                         new_true_deck.push([this.state.current_card.name, this.state.current_card.val])
                         result = "truth deck"
                         new_end_condition_count += 1
+                        new_answers.push([this.state.players[this.state.current_player], this.state.current_card.name, "honest and put in truth deck."])
                     }
 
                     //check for game ending condition...
-                    if(new_lie_deck.length === LIE_DECK_END_COUNT || new_end_condition_count === this.state.players.length * 2){
+                    if(new_turn_count >= GAME_END_TURN_COUNT || new_lie_deck.length === LIE_DECK_END_COUNT){
                         let end_info = {true_count:0, lie_count:0}
                         let end_true_count = 0
                         let end_lie_count = 0
@@ -287,7 +308,8 @@ class Room extends React.Component {
                                 lie_deck: new_lie_deck
                             },
                             'vote_result': result,
-                            'info': end_info
+                            'info': end_info,
+                            'answers': new_answers
                         })
                         this.setState({
                             voted: false
@@ -325,7 +347,8 @@ class Room extends React.Component {
                             'end_condition_count': new_end_condition_count,
                             'round_count': new_round_count,
                             'turn_count': new_turn_count,
-                            'info': new_info
+                            'info': new_info,
+                            'answers': new_answers
                         })
                         this.setState({
                             voted: false
@@ -335,6 +358,17 @@ class Room extends React.Component {
 
             }
             else{
+                if(this.state.voted === true){
+                    game.child('current_votes').get().then((current_v) => {
+                        let new_current_votes = current_v.val()
+                        if(new_current_votes.length === 5){
+                            new_current_votes = {"_":""}
+                        }
+                        new_current_votes[this.state.name] = this.state.current_vote
+                        game.update({current_votes: new_current_votes})
+                    })
+                }
+                
                 this.setState({
                     votes: votes.val()
                 })
@@ -480,6 +514,29 @@ class Room extends React.Component {
                     <br/>
                     The last question got put in {this.state.vote_result}. There are {this.state.lie_deck?.length || 0} cards in the lie deck.
                 </div>}
+                <br/>
+                <div>
+                    {this.state.answers.slice(1).map((val, ind) => {
+                        return (
+                            <div className="linkLabel">
+                                {val[0]} answered the question {val[1]} and was voted {val[2]}.
+                            </div>
+                            )
+                        })
+                    }
+                </div>
+                {this.isViewingMode() &&
+                    <div>
+                        {Object.keys(this.state.current_votes).map((key, ind) => {
+                            return (
+                                <div className="linkLabel">
+                                    {key} voted {this.state.current_votes[key]}!
+                                </div>
+                                )
+                            })
+                        }
+                    </div>
+                }
             </div>
         )
     }

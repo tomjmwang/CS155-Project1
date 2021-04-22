@@ -74,7 +74,7 @@ class Room extends React.Component {
             round_count: 1,
             info: {true_count: 0, lie_count:0},
             answers: [""],
-            current_votes: {"_": ""},
+            current_votes: {},
             current_vote: ""
         }
         this.startGame = this.startGame.bind(this)
@@ -107,7 +107,7 @@ class Room extends React.Component {
                 'round_count': 1,
                 'info': {true_count: TRUTH_CARD_TOTAL_COUNT, lie_count: LIE_CARD_TOTAL_COUNT},
                 'answers': [""],
-                current_votes: {"_": ""}
+                current_votes: {}
             })
         })
 
@@ -278,13 +278,13 @@ class Room extends React.Component {
                         new_lie_deck.push([this.state.current_card.name, this.state.current_card.val])
                         result = "lie deck"
                         new_end_condition_count = 0
-                        new_answers.push([this.state.players[this.state.current_player], this.state.current_card.name, "dishonest and put in lie deck."])
+                        new_answers.push([this.state.players[this.state.current_player], this.state.current_card.name, "a lie"])
                     }
                     else{
                         new_true_deck.push([this.state.current_card.name, this.state.current_card.val])
                         result = "truth deck"
                         new_end_condition_count += 1
-                        new_answers.push([this.state.players[this.state.current_player], this.state.current_card.name, "honest and put in truth deck."])
+                        new_answers.push([this.state.players[this.state.current_player], this.state.current_card.name, "the truth"])
                     }
 
                     //check for game ending condition...
@@ -309,7 +309,8 @@ class Room extends React.Component {
                             },
                             'vote_result': result,
                             'info': end_info,
-                            'answers': new_answers
+                            'answers': new_answers,
+                            'current_votes': {}
                         })
                         this.setState({
                             voted: false
@@ -361,14 +362,14 @@ class Room extends React.Component {
                 if(this.state.voted === true){
                     game.child('current_votes').get().then((current_v) => {
                         let new_current_votes = current_v.val()
-                        if(new_current_votes.length === 5){
-                            new_current_votes = {"_":""}
+                        if(new_current_votes.length === this.state.players.length - 1){
+                            new_current_votes = {}
                         }
                         new_current_votes[this.state.name] = this.state.current_vote
                         game.update({current_votes: new_current_votes})
                     })
                 }
-                
+
                 this.setState({
                     votes: votes.val()
                 })
@@ -380,32 +381,34 @@ class Room extends React.Component {
         const answeringPlayer = this.state.players[this.state.current_player]
 
         return (
-            <div className='gameScreenLeft'>
-                    <p className='playersLabel'>
-                        players:
-                    </p>
-                    <div className='playersList'>
-                        {this.state.players.map((player) => {
-                            return (
-                                <li key={player}>
-                                    <div className={player === answeringPlayer ? 'currentPlayer' : undefined} >
-                                        {player}
-                                    </div>
-                                </li>
-                            )
-                        }
-                        )}
-                    </div>
+            <>
+                <p className='playersLabel'>
+                    Players:
+                </p>
+                <div className='playersList'>
+                    {this.state.players.map((player) => {
+                        return (
+                            <li key={player}>
+                                <div className={player === answeringPlayer ? 'currentPlayer' : undefined} >
+                                    {player}
+                                </div>
+                            </li>
+                        )
+                    }
+                    )}
                 </div>
+            </>
         )
     }
 
     renderWaitingRoom() {
         const hasEnoughPlayers = this.state.players.length >= MIN_NUMBER_PLAYERS
+        const roomCode = window.location.pathname.substring(6, 13)
+        const url = window.location.origin + '/enter/' + roomCode
         return (
             <div className='waiting'>
-                <p className='linkLabel'>send your friends this code:</p>
-                <p className='link'>{window.location.pathname.substring(6, 13)}</p>
+                <p className='linkLabel'>send your friends this link:</p>
+                <p><a href={url} target="_blank" className='link' rel="noreferrer">{url}</a></p>
                 {hasEnoughPlayers && <button className='block' onClick={this.startGame} style={{margin: 'auto'}}>start</button>}
                 {!hasEnoughPlayers && <p>{MIN_NUMBER_PLAYERS - this.state.players.length} more players needed to start!</p>}
             </div>
@@ -418,125 +421,165 @@ class Room extends React.Component {
         return (
             <div>
                 <div className='liarLabel'>
-                    There are {end_info.true_count} truth cards, {end_info.lie_count} lie cards in main deck.
-                    {truthTellersAutoWin && <>Truth-tellers win, and {this.state.liar} is the liar / loser!</>}
+                    {truthTellersAutoWin && <>Saints win, and the loser is {this.state.liar} (the Devil!)</>}
                     {!truthTellersAutoWin && <div>
                         <br/>
-                        Since there are lie cards in the main deck, vote (over zoom) who you think the liar is.
+                        Uh-oh, {end_info.lie_count} lies were voted as truths!
+                        <br/>
+                        Your final saving grace: vote (over zoom) who you think the Devil is.
                         <br/>
                         <br/>
                         <details>
-                            <summary>Toggle to show the liar (don't click until everyone has voted!)</summary>
+                            <summary><strong>Toggle to show the Devil (don't click until everyone has voted!)</strong></summary>
+                            <br/>
+                            {this.state.liar} is the Devil!
                             <br/><br/>
-                            {this.state.liar} is the liar!
+                            If the majority voted correctly, the Saints win!
+                            Otherwise, {this.state.liar} (the Devil) wins!
                             <br/><br/>
-                            If the majority voted correctly, the truth-tellers win!
-                            Otherwise, the {this.state.liar} wins!
+                            <button className='block' onClick={this.restartGame}>play again</button>
                         </details>
                     </div>}
                 </div>
-                <button className='block' onClick={this.restartGame} style={{ marginTop: '20px', marginLeft: 'auto', marginRight: 'auto' }}>play again</button>
+            </div>
+        )
+    }
+
+    renderVotingLog() {
+        const votes = this.state.answers?.slice(1).reverse()
+        if (votes.length > 0)  {
+            return (
+                <div className='votingLog'>
+                    <details open>
+                        <summary className='playersLabel'>Voting log:</summary>
+                        {votes.map((val, i) => {
+                            const questionNum = votes.length - i
+                            return (
+                                <li key={i + 1}>
+                                    <b>Question {questionNum} / {GAME_END_TURN_COUNT}: {val[0]}</b>'s answer to '{val[1]}' was voted as <b>{val[2]}</b>.
+                                </li>
+                            )
+                        })}
+                    </details>
+                </div>
+            )
+        }
+
+        return <></>
+    }
+
+    renderPlayerIdentity() {
+        if (this.isViewingMode()) return <></>
+        const currentPlayerIsLiar = this.state.name === this.state.liar
+
+        if (currentPlayerIsLiar) {
+            return (
+                <div>
+                    <u>You are the Devil.</u><br/>
+                    You must always lie when it is your turn to answer questions.
+                    Try to trick the other players into thinking you are telling the truth,
+                    without being detected as the Devil.
+                </div>
+            )
+        }
+
+        return (
+            <div>
+                <u>You are a Saint.</u><br/>
+                You are trying to detect when other people are lying,
+                and figure out who is the Devil.
+            </div>
+        )
+    }
+
+    renderCurrentQuestion() {
+        const answeringPlayer = this.state.players[this.state.current_player]
+        const currentQuestion = this.state.current_card.name
+        const currentPlayer = this.state.name
+        const currentPlayerIsLiar = this.state.name === this.state.liar
+
+        return (
+            <div>
+                <p className='promptLabel'>Question {this.state.turn_count + 1} / {GAME_END_TURN_COUNT}</p>
+                {currentPlayer !== answeringPlayer ? (
+                    <p className='promptLabel'>{answeringPlayer} is answering the question '{currentQuestion}'</p>
+                    ) : (
+                    <>
+                        <p className='promptLabel'>It's your turn to answer this question: <br/> {currentQuestion}</p>
+                        <p className='promptLabel'>
+                            God wants you to tell <span className='hl'>{this.state.current_card.val ? 'the truth' : 'a lie'}</span>.
+                            As a <span className='hl'>{currentPlayerIsLiar ? 'Devil' : 'Saint'}</span>,
+                            you must <span className='hl'>{currentPlayerIsLiar ? 'lie' : this.state.current_card.val ? 'tell the truth' : 'lie'}</span>.
+                        </p>
+
+                    </>
+                    )
+                }
+            </div>
+        )
+    }
+
+    renderVotingSection() {
+        const answeringPlayer = this.state.players[this.state.current_player]
+        if (this.state.name === answeringPlayer) {
+            return (
+                <div className='votingSection'>
+                    Other players are currently voting on {this.isViewingMode() ? answeringPlayer + "'s": 'your'} ~ honesty ~ 😌😌😌
+                </div>
+            )
+        }
+
+        if (this.state.voted) {
+            return (
+                <div className='votingSection'>
+                    You have voted!
+                </div>
+            )
+        }
+
+        return (
+            <div className='votingSection'>
+                Do you think {answeringPlayer} was telling the truth or lying?
+                <div className='linkLabel'>
+                    The group has {LIE_DECK_END_COUNT - (this.state.lie_deck?.length || 0)} remaining answers to vote as lies.
+                </div>
+                <div className='votingOptions'>
+                    <button className='block' onClick={this.updateVoteTruth}>Telling the truth</button>
+                    <button className='block' onClick={this.updateVoteLie}>Lying</button>
+                </div>
+            </div>
+        )
+    }
+
+    renderPlayersHaveVotedSection() {
+        if (!this.state.current_votes) { return <></> }
+        return (
+            <div>
+                {Object.keys(this.state.current_votes).map((key, ind) => {
+                    return (
+                        <div className="linkLabel">
+                            {key} voted {this.state.current_votes[key]}!
+                        </div>
+                        )
+                    })
+                }
             </div>
         )
     }
 
     renderMainGamePage() {
-        const answeringPlayer = this.state.players[this.state.current_player]
-        const currentQuestion = this.state.current_card.name
-        const currentPlayer = this.state.name
-        const currentPlayerIsLiar = this.state.name === this.state.liar
-        const cardInfo = this.state.info
-        const roundCount = this.state.round_count
-
         return (
             <div>
-                {!this.isViewingMode() && !currentPlayerIsLiar &&
-                    <div>
-                        <u>You are a truth-teller.</u><br/>
-                        You are trying to detect when other people are lying,
-                        and figure out who is the liar.
-                    </div>
-                }
-                {currentPlayerIsLiar &&
-                    <div>
-                        <u>You are the liar.</u><br/>
-                        You must always lie when it is your turn to answer questions.
-                        Try to get dishonest answer integrity cards into the final
-                        lie deck without being detected.
-                    </div>
-                }
-                <div>
-                    {currentPlayer !== answeringPlayer ? (
-                        <p className='promptLabel'>{answeringPlayer} is answering the question '{currentQuestion}'</p>
-                        ) : (
-                        <>
-                            <p className='promptLabel'>It's your turn to answer this question: <br/> {currentQuestion}</p>
-                            <p className='promptLabel'>
-                                You have drawn <span className='hl'>{this.state.current_card.val ? 'an honest' : 'a dishonest'}</span> answer-integrity card.
-                                As a <span className='hl'>{currentPlayerIsLiar ? 'liar' : 'truth-teller'}</span>,
-                                you must <span className='hl'>{currentPlayerIsLiar ? 'lie' : this.state.current_card.val ? 'tell the truth' : 'lie'}</span>.
-                            </p>
-
-                        </>
-                        )
-                    }
-                </div>
-                {currentPlayer !== answeringPlayer && !this.isViewingMode() &&
-                    <div>
-                    {this.state.voted === false &&
-                        <div className='votingSection'>
-                            Do you think {answeringPlayer} has an honest or dishonest integrity card?
-                            <div className='votingOptions'>
-                                <button className='block' onClick={this.updateVoteTruth}>Honest</button>
-                                <button className='block' onClick={this.updateVoteLie}>Dishonest</button>
-                            </div>
-                        </div>
-                    }
-                    {this.state.voted === true &&
-                        <div className='promptLabel'>
-                            You have voted!
-                        </div>
-                    }
-                    </div>
-                }
-                {
-                    currentPlayer === answeringPlayer && <div className='votingSection'>
-                        Other players are currently voting on {this.isViewingMode() ? answeringPlayer + "'s": 'your'} ~ honesty ~ 😌😌😌
-                    </div>
-                }
-
+                {this.renderPlayerIdentity()}
+                {this.renderCurrentQuestion()}
+                {this.renderVotingSection()}
                 <br/><br/>
-                <div className='linkLabel'>
-                    As of start of round {roundCount}, there were {cardInfo.true_count} truth cards and {cardInfo.lie_count} lie cards
-                    in the main deck.
-                </div>
-                {this.state.vote_result && <div className='linkLabel'>
-                    <br/>
-                    The last question got put in {this.state.vote_result}. There are {this.state.lie_deck?.length || 0} cards in the lie deck.
-                </div>}
+
+                {/* {this.state.vote_result && <div className='linkLabel'>
+                    The last question got put in {this.state.vote_result}.
+                </div>} */}
+                {this.renderPlayersHaveVotedSection()}
                 <br/>
-                <div>
-                    {this.state.answers.slice(1).map((val, ind) => {
-                        return (
-                            <div className="linkLabel">
-                                {val[0]} answered the question {val[1]} and was voted {val[2]}.
-                            </div>
-                            )
-                        })
-                    }
-                </div>
-                {this.isViewingMode() &&
-                    <div>
-                        {Object.keys(this.state.current_votes).map((key, ind) => {
-                            return (
-                                <div className="linkLabel">
-                                    {key} voted {this.state.current_votes[key]}!
-                                </div>
-                                )
-                            })
-                        }
-                    </div>
-                }
             </div>
         )
     }
@@ -544,7 +587,10 @@ class Room extends React.Component {
     render() {
         return (
             <div className='gameScreen'>
-                {this.renderPlayerList()}
+                <div className='gameScreenLeft'>
+                    {this.renderPlayerList()}
+                    {this.state.stage === 1 && this.renderVotingLog()}
+                </div>
                 <div className='gameScreenRight'>
                     {this.state.stage === 0 && this.renderWaitingRoom()}
                     {this.state.stage === 1 && this.renderMainGamePage()}

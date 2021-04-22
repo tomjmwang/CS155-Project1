@@ -592,6 +592,19 @@ class Room extends React.Component {
         )
     }
 
+    renderAdminSection(){
+        return (
+            <div className='votingSection'>
+                <p className='promptLabel hl'>Admin function: add a vote</p>
+
+                <div className='votingOptions'>
+                    <button className='block' onClick={this.updateVoteTruth}>Add a truth vote</button>
+                    <button className='block' onClick={this.updateVoteLie}>Add a lie vote</button>
+                </div>
+            </div>
+            )
+    }
+
     renderMainGamePage() {
         if (this.isViewingMode()) {
             return (
@@ -599,6 +612,7 @@ class Room extends React.Component {
                     {this.renderCurrentQuestion()}
                     {this.renderRemainingLieVotes()}
                     {this.renderPlayersHaveVotedSection()}
+                    {this.renderAdminSection()}
                 </div>
             )
         }

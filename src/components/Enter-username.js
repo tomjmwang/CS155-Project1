@@ -46,7 +46,7 @@ function EnterUsername() {
                     round_count: 1,
                     info: {true_count: 0, lie_count:0},
                     answers: [""],
-                    current_votes: {"_": ""}
+                    current_votes: {"_":""}
                 }
                 games.child(id).set(game)
                 hist.replace('/room/' + id + '&name=' + name)

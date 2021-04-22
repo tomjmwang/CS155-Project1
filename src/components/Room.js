@@ -74,7 +74,7 @@ class Room extends React.Component {
             round_count: 1,
             info: {true_count: 0, lie_count:0},
             answers: [""],
-            current_votes: {},
+            current_votes: {"_":""},
             current_vote: "",
         }
         this.startGame = this.startGame.bind(this)
@@ -107,7 +107,7 @@ class Room extends React.Component {
                 'round_count': 1,
                 'info': {true_count: TRUTH_CARD_TOTAL_COUNT, lie_count: LIE_CARD_TOTAL_COUNT},
                 'answers': [""],
-                current_votes: {}
+                'current_votes': {"_":""}
             })
         })
 
@@ -121,11 +121,20 @@ class Room extends React.Component {
         game.child('votes').get().then((data)=>{
             let votes = data.val()
             votes.true_count += 1
+
             game.update({'votes': votes})
             this.setState({
                 voted: true,
                 current_vote: "honest"
             })
+        })
+        game.child('current_votes').get().then((cv)=>{
+            let new_current_votes = {"_":""}
+            if(Object.keys(cv.val()).length <= 3){
+                new_current_votes = cv.val()
+            }
+            new_current_votes[this.state.name] = "honest"
+            game.update({current_votes: new_current_votes})
         })
 
     }
@@ -141,6 +150,14 @@ class Room extends React.Component {
                 voted: true,
                 current_vote: "dishonest"
             })
+        })
+        game.child('current_votes').get().then((cv)=>{
+            let new_current_votes = {"_":""}
+            if(Object.keys(cv.val()).length <= 3){
+                new_current_votes = cv.val()
+            }
+            new_current_votes[this.state.name] = "dishonest"
+            game.update({current_votes: new_current_votes})
         })
     }
 
@@ -309,8 +326,7 @@ class Room extends React.Component {
                             },
                             'vote_result': result,
                             'info': end_info,
-                            'answers': new_answers,
-                            'current_votes': {}
+                            'answers': new_answers
                         })
                         this.setState({
                             voted: false
@@ -359,16 +375,16 @@ class Room extends React.Component {
 
             }
             else{
-                if(this.state.voted === true){
-                    game.child('current_votes').get().then((current_v) => {
-                        let new_current_votes = current_v.val()
-                        if(new_current_votes.length === this.state.players.length - 1){
-                            new_current_votes = {}
-                        }
-                        new_current_votes[this.state.name] = this.state.current_vote
-                        game.update({current_votes: new_current_votes})
-                    })
-                }
+                // if(this.state.voted === true){
+                //     game.child('current_votes').get().then((current_v) => {
+                //         let new_current_votes = current_v.val()
+                //         if(new_current_votes.length === this.state.players.length - 1){
+                //             new_current_votes = {}
+                //         }
+                //         new_current_votes[this.state.name] = this.state.current_vote
+                //         game.update({current_votes: new_current_votes})
+                //     })
+                // }
 
                 this.setState({
                     votes: votes.val()
@@ -554,6 +570,9 @@ class Room extends React.Component {
         return (
             <div>
                 {Object.keys(this.state.current_votes).map((key, ind) => {
+                    if(key === "_"){
+                        return <></>
+                    }
                     return (
                         <div className="linkLabel" key={ind}>
                             {key} voted {this.state.current_votes[key]}!

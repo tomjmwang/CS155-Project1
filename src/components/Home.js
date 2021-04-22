@@ -16,7 +16,7 @@ class Home extends React.Component {
         return (
             <div className='root'>
                 <div className='container'>
-                    <h1>☁️☁️😇😇😈😇☁️☁️ <br/> Devil Among Us <br/>🔥🔥🔥🔥🔥🔥🔥🔥 </h1>
+                    <h1>☁️☁️ 😇😇😈😇 ☁️☁️ <br/> Devil Among Us  </h1>
                     <h2 className='subheader'>Detect lies as if your (after) life depends on it
                         <br/><br/>
                         <Link to='/instructions'>How to play &rarr;</Link>

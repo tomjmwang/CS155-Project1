@@ -75,7 +75,7 @@ class Room extends React.Component {
             info: {true_count: 0, lie_count:0},
             answers: [""],
             current_votes: {},
-            current_vote: ""
+            current_vote: "",
         }
         this.startGame = this.startGame.bind(this)
         this.updateVoteTruth = this.updateVoteTruth.bind(this)
@@ -456,7 +456,7 @@ class Room extends React.Component {
                             const questionNum = votes.length - i
                             return (
                                 <li key={i + 1}>
-                                    <b>Question {questionNum} / {GAME_END_TURN_COUNT}: {val[0]}</b>'s answer to '{val[1]}' was voted as <b>{val[2]}</b>.
+                                    Q{questionNum} by {val[0]} was voted as <b>{val[2]}</b>
                                 </li>
                             )
                         })}
@@ -474,21 +474,21 @@ class Room extends React.Component {
 
         if (currentPlayerIsLiar) {
             return (
-                <div>
-                    <u>You are the Devil.</u><br/>
+                <details className='playerIdentity linkLabel'>
+                    <summary>You are the <u>Devil</u>.</summary><br/>
                     You must always lie when it is your turn to answer questions.
                     Try to trick the other players into thinking you are telling the truth,
                     without being detected as the Devil.
-                </div>
+                </details>
             )
         }
 
         return (
-            <div>
-                <u>You are a Saint.</u><br/>
+            <details className='playerIdentity linkLabel'>
+                <summary>You are a <u>Saint</u>.</summary><br/>
                 You are trying to detect when other people are lying,
                 and figure out who is the Devil.
-            </div>
+            </details>
         )
     }
 
@@ -539,10 +539,8 @@ class Room extends React.Component {
 
         return (
             <div className='votingSection'>
-                Do you think {answeringPlayer} was telling the truth or lying?
-                <div className='linkLabel'>
-                    The group has {LIE_DECK_END_COUNT - (this.state.lie_deck?.length || 0)} remaining answers to vote as lies.
-                </div>
+                <p className='promptLabel hl'>Do you think {answeringPlayer} was telling the truth or lying?</p>
+
                 <div className='votingOptions'>
                     <button className='block' onClick={this.updateVoteTruth}>Telling the truth</button>
                     <button className='block' onClick={this.updateVoteLie}>Lying</button>
@@ -557,7 +555,7 @@ class Room extends React.Component {
             <div>
                 {Object.keys(this.state.current_votes).map((key, ind) => {
                     return (
-                        <div className="linkLabel">
+                        <div className="linkLabel" key={ind}>
                             {key} voted {this.state.current_votes[key]}!
                         </div>
                         )
@@ -567,19 +565,29 @@ class Room extends React.Component {
         )
     }
 
+    renderRemainingLieVotes() {
+        return (
+            <div className='linkLabel'>
+                The group can vote {LIE_DECK_END_COUNT - (this.state.lie_deck?.length || 0)} more answers as lies.
+            </div>
+        )
+    }
+
     renderMainGamePage() {
+        if (this.isViewingMode()) {
+            return (
+                <div>
+                    {this.renderCurrentQuestion()}
+                    {this.renderRemainingLieVotes()}
+                    {this.renderPlayersHaveVotedSection()}
+                </div>
+            )
+        }
         return (
             <div>
                 {this.renderPlayerIdentity()}
                 {this.renderCurrentQuestion()}
                 {this.renderVotingSection()}
-                <br/><br/>
-
-                {/* {this.state.vote_result && <div className='linkLabel'>
-                    The last question got put in {this.state.vote_result}.
-                </div>} */}
-                {this.renderPlayersHaveVotedSection()}
-                <br/>
             </div>
         )
     }

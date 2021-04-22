@@ -16,13 +16,11 @@ class Home extends React.Component {
         return (
             <div className='root'>
                 <div className='container'>
-                    <h1>🔥🔥🔥 Fire the Liar 🤥🤥🤥</h1>
-                    <h3 className='subheader'>A game of getting to know each other (or for some, <em>not</em> getting to know each other)!
-                        <br></br>
-                        <a href='https://docs.google.com/document/d/1tKZH9MmeWXQc_eNcoHw3SsS-xuUpcVUN5S6INx_17vs/edit?usp=sharing' target="_blank">
-                            How to play &rarr;
-                        </a>
-                    </h3>
+                    <h1>☁️☁️😇😇😈😇☁️☁️ <br/> Devil Among Us <br/>🔥🔥🔥🔥🔥🔥🔥🔥 </h1>
+                    <h2 className='subheader'>Detect lies as if your (after) life depends on it
+                        <br/><br/>
+                        <Link to='/instructions'>How to play &rarr;</Link>
+                    </h2>
                     <Link to='/enter'><button className='block'>create new room</button></Link>
                     <input className='usernameInput' type='text' value={this.state.code} onChange={this.handleChange.bind(this)} />
                     <Link to={'/enter/' + this.state.code} style={{ textDecoration: 'none' }}><button className='block'>enter with code</button></Link>

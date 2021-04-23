@@ -8,7 +8,7 @@ function Instructions() {
             <h1 style={{marginBlock: 0}}>how to play</h1>
             <p>Welcome to heaven! Or so you think. Turns out, God has become pickier than before and now has a new rule for folks wanting to enter heaven: they must be able to tell when people are lying.</p>
 
-            <p>In order to verify who does or does not belong in heaven with these new rules, everyone must participate in a group lie-detecting simulation. God will give each player a question, as well as an instruction of whether to tell the truth or lie. After each player answers, everyone else will vote on whether or not they think that player is telling the truth or lying. Players can only vote a total of four answers as lies. This continues until every player has answered two questions each.</p>
+            <p>In order to verify who does or does not belong in heaven with these new rules, everyone must participate in a group lie-detecting simulation. God will give each player a question, as well as an instruction of whether to tell the truth or lie. After each player answers, everyone else will vote on whether or not they think that player is telling the truth or lying. <b>Players can only vote a total of four answers as lies.</b> This continues until every player has answered two questions each.</p>
 
             <p>There is one catch: one person in the group is the Devil and is trying to bring everyone down to hell with them. They can only lie, regardless of what God tells them, but they will try to trick everyone else into thinking they are telling the truth.</p>
 

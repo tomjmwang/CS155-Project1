@@ -32,6 +32,9 @@ const LIE_DECK_END_COUNT = 4
 const TRUTH_CARD_TOTAL_COUNT = 6
 const LIE_CARD_TOTAL_COUNT = 2
 
+const ANSWER_STR_TRUTH = 'the truth'
+const ANSWER_STR_LIE = 'a lie'
+
 function shuffle(array){
 
     var currentIndex = array.length
@@ -295,13 +298,13 @@ class Room extends React.Component {
                         new_lie_deck.push([this.state.current_card.name, this.state.current_card.val])
                         result = "lie deck"
                         new_end_condition_count = 0
-                        new_answers.push([this.state.players[this.state.current_player], this.state.current_card.name, "a lie"])
+                        new_answers.push([this.state.players[this.state.current_player], this.state.current_card.name, ANSWER_STR_LIE])
                     }
                     else{
                         new_true_deck.push([this.state.current_card.name, this.state.current_card.val])
                         result = "truth deck"
                         new_end_condition_count += 1
-                        new_answers.push([this.state.players[this.state.current_player], this.state.current_card.name, "the truth"])
+                        new_answers.push([this.state.players[this.state.current_player], this.state.current_card.name, ANSWER_STR_TRUTH])
                     }
 
                     //check for game ending condition...
@@ -435,16 +438,17 @@ class Room extends React.Component {
         const end_info = this.state.info
         const truthTellersAutoWin = end_info.lie_count === 0
         return (
-            <div>
+            <div className='endPage'>
                 <div className='liarLabel'>
                     {truthTellersAutoWin && <>Saints win, and the loser is {this.state.liar} (the Devil!)</>}
                     {!truthTellersAutoWin && <div>
                         <br/>
                         Uh-oh, {end_info.lie_count} lies were voted as truths!
                         <br/>
-                        Your final saving grace: vote (over zoom) who you think the Devil is.
+                        Your final saving grace: discuss and vote (over zoom / in-person) who you think the Devil is.
                         <br/>
                         <br/>
+                        {this.renderFinalVotesByAnswer()}
                         <details>
                             <summary><strong>Toggle to show the Devil (don't click until everyone has voted!)</strong></summary>
                             <br/>
@@ -470,9 +474,11 @@ class Room extends React.Component {
                         <summary className='playersLabel'>Voting log:</summary>
                         {votes.map((val, i) => {
                             const questionNum = votes.length - i
+                            const answerer = val[0]
+                            const result = val[2]
                             return (
                                 <li key={i + 1}>
-                                    Q{questionNum} by {val[0]} was voted as <b>{val[2]}</b>
+                                    Q{questionNum} by {answerer} was voted as <b>{result}</b>
                                 </li>
                             )
                         })}
@@ -482,6 +488,45 @@ class Room extends React.Component {
         }
 
         return <></>
+    }
+
+    renderFinalVotesByAnswer() {
+        const votes = this.state.answers?.slice(1)
+        const lies = []
+        const truths = []
+
+        votes.forEach((val, i) => {
+            const answerer = val[0]
+            const question = val[1]
+            const result = val[2]
+            const elem = (
+                <li key={i + 1}>
+                    {answerer}'s answer to '{question}'
+                </li>
+            )
+
+            if (result === ANSWER_STR_TRUTH) {
+                truths.push(elem)
+            } else {
+                lies.push(elem)
+            }
+        })
+
+        return (
+            <details className="finalVotesTableToggle" open>
+                <summary>Voting history log</summary>
+                <div className="finalVotesTable">
+                    <div className="truths section">
+                        <h3>What the group voted as true</h3>
+                        {truths}
+                    </div>
+                    <div className="lies section">
+                        <h3>What the group voted as a lie</h3>
+                        {lies}
+                    </div>
+                </div>
+            </details>
+        )
     }
 
     renderPlayerIdentity() {

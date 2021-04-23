@@ -160,3 +160,30 @@
 .hl {
     color: white;
 }
+
+.finalVotesTableToggle {
+    margin: 24px 0;
+}
+
+.finalVotesTable .section {
+    margin: 32px 0;
+}
+
+.finalVotesTable .section h3 {
+    margin: 32px 0;
+    text-decoration: underline;
+}
+
+.finalVotesTable li {
+    list-style: none;
+    margin: 8px 0;
+}
+
+.endPage {
+    overflow: scroll;
+    font-size: 18px;
+}
+
+summary {
+    cursor: default;
+}

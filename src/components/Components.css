@@ -143,6 +143,10 @@
     font-size: 32px;
 }
 
+.adminVotingSection {
+    margin-top: 24px;
+}
+
 .votingOptions {
     display: flex;
     margin: 24px 0;

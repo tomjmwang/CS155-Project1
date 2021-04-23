@@ -84,6 +84,8 @@ class Room extends React.Component {
         this.updateVoteTruth = this.updateVoteTruth.bind(this)
         this.updateVoteLie = this.updateVoteLie.bind(this)
         this.restartGame = this.restartGame.bind(this)
+        this.audio = new Audio('https://www.myinstants.com/media/sounds/ding-1.mp3')
+        this.audio.volume = 0.4
     }
 
     isViewingMode() {
@@ -373,6 +375,8 @@ class Room extends React.Component {
                         this.setState({
                             voted: false
                         })
+                        // Signify next turn!
+                        this.audio.play()
                     }
                 })
 
@@ -437,10 +441,19 @@ class Room extends React.Component {
     renderEndPage() {
         const end_info = this.state.info
         const truthTellersAutoWin = end_info.lie_count === 0
+        if (truthTellersAutoWin) {
+            const audio = new Audio('https://www.myinstants.com/media/sounds/139-item-catch.mp3')
+            audio.volume = 0.1
+            audio.play()
+        }
         return (
             <div className='endPage'>
                 <div className='liarLabel'>
-                    {truthTellersAutoWin && <>Saints win, and the loser is {this.state.liar} (the Devil!)</>}
+                    {truthTellersAutoWin && <>None of the lies were voted as truths! <br/><br/>
+                    Saints win, and the loser is {this.state.liar} (the Devil!)
+                    <br/><br/>
+                    <button className='block' onClick={this.restartGame}>play again</button>
+                    </>}
                     {!truthTellersAutoWin && <div>
                         <br/>
                         Uh-oh, {end_info.lie_count} lies were voted as truths!
@@ -450,7 +463,7 @@ class Room extends React.Component {
                         <br/>
                         {this.renderFinalVotesByAnswer()}
                         <details>
-                            <summary><strong>Toggle to show the Devil (don't click until everyone has voted!)</strong></summary>
+                            <summary><strong><u>Toggle to show the Devil</u> (don't click until everyone has voted!)</strong></summary>
                             <br/>
                             {this.state.liar} is the Devil!
                             <br/><br/>
@@ -517,11 +530,11 @@ class Room extends React.Component {
                 <summary>Voting history log</summary>
                 <div className="finalVotesTable">
                     <div className="truths section">
-                        <h3>What the group voted as true</h3>
+                        <u>What the group voted as true</u>
                         {truths}
                     </div>
                     <div className="lies section">
-                        <h3>What the group voted as a lie</h3>
+                        <u>What the group voted as a lie</u>
                         {lies}
                     </div>
                 </div>
@@ -639,14 +652,14 @@ class Room extends React.Component {
 
     renderAdminSection(){
         return (
-            <div className='votingSection'>
-                <p className='promptLabel hl'>Admin function: add a vote</p>
+            <details className='adminVotingSection'>
+                <summary className='linkLabel'>Is voting broken? toggle me! ;)</summary>
 
                 <div className='votingOptions'>
                     <button className='block' onClick={this.updateVoteTruth}>Add a truth vote</button>
                     <button className='block' onClick={this.updateVoteLie}>Add a lie vote</button>
                 </div>
-            </div>
+            </details>
             )
     }
 

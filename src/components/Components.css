@@ -16,6 +16,11 @@
     text-align: center;
 }
 
+.container.instructions {
+    text-align: left;
+    align-items: flex-start;
+}
+
 .subheader {
     margin-bottom: 32px;
 }

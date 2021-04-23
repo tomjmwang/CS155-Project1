@@ -452,7 +452,7 @@ class Room extends React.Component {
                     {truthTellersAutoWin && <>None of the lies were voted as truths! <br/><br/>
                     Saints win, and the loser is {this.state.liar} (the Devil!)
                     <br/><br/>
-                    <button className='block' onClick={this.restartGame}>play again</button>
+                    {/* <button className='block' onClick={this.restartGame}>play again</button> */}
                     </>}
                     {!truthTellersAutoWin && <div>
                         <br/>
@@ -470,7 +470,7 @@ class Room extends React.Component {
                             If the majority voted correctly, the Saints win!
                             Otherwise, {this.state.liar} (the Devil) wins!
                             <br/><br/>
-                            <button className='block' onClick={this.restartGame}>play again</button>
+                            {/* <button className='block' onClick={this.restartGame}>play again</button> */}
                         </details>
                     </div>}
                 </div>
@@ -561,7 +561,8 @@ class Room extends React.Component {
             <details className='playerIdentity linkLabel'>
                 <summary>You are a <u>Saint</u>.</summary><br/>
                 You are trying to detect when other people are lying,
-                and figure out who is the Devil.
+                and figure out who is the Devil. If God's will is for you to lie, try to make it obvious
+                so your fellow saints can detect it!
             </details>
         )
     }
@@ -581,7 +582,7 @@ class Room extends React.Component {
                     <>
                         <p className='promptLabel'>It's your turn to answer this question: <br/> {currentQuestion}</p>
                         <p className='promptLabel'>
-                            God wants you to tell <span className='hl'>{this.state.current_card.val ? 'the truth' : 'a lie'}</span>.
+                            God's will is for you to tell <span className='hl'>{this.state.current_card.val ? 'the truth' : 'a lie'}</span>.
                             As a <span className='hl'>{currentPlayerIsLiar ? 'Devil' : 'Saint'}</span>,
                             you must <span className='hl'>{currentPlayerIsLiar ? 'lie' : this.state.current_card.val ? 'tell the truth' : 'lie'}</span>.
                         </p>

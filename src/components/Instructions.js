@@ -13,7 +13,7 @@ function Instructions() {
             <p>There is one catch: unbeknownst to God, one of the players is the Devil and is trying to bring everyone down to hell with them. They can only lie, regardless of what God tells them, and are trying to make the Saints fail their lie-detection test without being detected.</p>
 
             <p>After everyone has answered two questions, God will reveal if the players have mistakenly voted any of the lies as truths. If no lies were mistaken as truths, then everyone will go to heaven, and the Devil goes back to hell!</p>
-            <p>If there were any lies mistaken as truths, however, the group still has one saving grace: if they correctly vote who the Devil is, they can send the Devil back to hell and re-enter heaven. Otherwise, the Devil wins and will bring them all to hell.</p>
+            <p>If there were any lies mistaken as truths, however, the group still has one saving grace: if majority can identify who the Devil is, they can send the Devil back to hell and re-enter heaven. Otherwise, the Devil wins and will bring them all to hell.</p>
 
             <p>
             <details>
